@@ -1,0 +1,44 @@
+name: Deploy Images to GHCR
+
+on:
+  push:
+    branches:
+      - 2024
+  workflow_dispatch:
+
+jobs:
+  push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout GitHub Action"
+        uses: actions/checkout@v4
+
+      - name: "Setup Node 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: "Install dependencies"
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: |
+            - args: [--frozen-lockfile]
+
+      - name: "Run typecheck"
+        run: pnpm run typecheck
+
+      - name: "Run eslint"
+        run: pnpm run lint
+
+      - name: "Login to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: "Build Image"
+        run: |
+          docker build . --tag ghcr.io/k54lid/downtify:latest
+          docker push ghcr.io/k54lid/downtify:latest
