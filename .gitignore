@@ -187,3 +187,5 @@ dist
 # Finder (MacOS) folder config
 .DS_Store
 >>>>>>> 999c38a6195443ce89a56c989d6c53043a079d41
+
+venv/
