@@ -46,9 +46,11 @@ class Settings(BaseSettings):
     @field_validator("ADMIN_IDS", mode="before")
     @classmethod
     def _split_admin_ids(cls, v):
-        if isinstance(v, str):
-            return [int(x.strip()) for x in v.split(",") if x.strip()]
-        return v or []
+     if isinstance(v, int):
+        return [v]
+     if isinstance(v, str):
+        return [int(x.strip()) for x in v.split(",") if x.strip()]
+     return v or []
 
     @property
     def database_url(self) -> str:
