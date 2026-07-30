@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
     REDIS_URL: str = ""
+
     RATE_LIMIT_PER_MINUTE: int = 30
     DOWNLOAD_MAX_FILESIZE_MB: int = 1024
 
@@ -44,44 +45,45 @@ class Settings(BaseSettings):
     WEBAPP_HOST: str = "0.0.0.0"
     WEBAPP_PORT: int = 8080
     WEBHOOK_SECRET: str = ""
+
     DATABASE_URL: str = ""
     TELEGRAM_API_ROOT: str = ""
 
-    def is_admin(user_id: int) -> bool:
-     return user_id in [
-        int(x)
-        for x in settings.ADMIN_IDS.split(",")
-    ]
+    @property
+    def admin_ids(self) -> list[int]:
+        return [
+            int(x.strip())
+            for x in self.ADMIN_IDS.split(",")
+            if x.strip()
+        ]
+
+    def is_admin(self, user_id: int) -> bool:
+        return user_id in self.admin_ids
 
     @property
     def database_url(self) -> str:
-     if self.DATABASE_URL:
-        return self.DATABASE_URL.replace(
-            "postgres://",
-            "postgresql+asyncpg://",
-            1,
-        )
+        if self.DATABASE_URL:
+            return self.DATABASE_URL.replace(
+                "postgres://",
+                "postgresql+asyncpg://",
+                1,
+            )
 
-     return (
-        f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-        f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-    )
+        return (
+            f"postgresql+asyncpg://"
+            f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}"
+            f"/{self.POSTGRES_DB}"
+        )
 
     @property
     def redis_url(self) -> str:
-     if hasattr(self, "REDIS_URL") and self.REDIS_URL:
-        return self.REDIS_URL
+        if self.REDIS_URL:
+            return self.REDIS_URL
 
-     return (
-        f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-    )
+        return (
+            f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        )
 
 
 settings = Settings()
-@property
-def admin_ids(self) -> list[int]:
-    return [
-        int(x.strip())
-        for x in self.ADMIN_IDS.split(",")
-        if x.strip()
-    ]
