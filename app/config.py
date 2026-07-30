@@ -1,14 +1,18 @@
 from __future__ import annotations
-from typing import List
-from pydantic import Field, field_validator
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     BOT_TOKEN: str
     BOT_USERNAME: str = "Downtify_Bot"
-    ADMIN_IDS: List[int] = Field(default_factory=list)
+    ADMIN_IDS: str = ""
 
     SUBSCRIPTION_STARS: int = 100
     SUBSCRIPTION_DAYS: int = 30
@@ -43,14 +47,13 @@ class Settings(BaseSettings):
 
     TELEGRAM_API_ROOT: str = ""
 
-    @field_validator("ADMIN_IDS", mode="before")
-    @classmethod
-    def _split_admin_ids(cls, v):
-     if isinstance(v, int):
-        return [v]
-     if isinstance(v, str):
-        return [int(x.strip()) for x in v.split(",") if x.strip()]
-     return v or []
+    @property
+    def admin_ids(self) -> list[int]:
+        return [
+            int(x.strip())
+            for x in self.ADMIN_IDS.split(",")
+            if x.strip()
+        ]
 
     @property
     def database_url(self) -> str:
@@ -61,6 +64,9 @@ class Settings(BaseSettings):
 
     @property
     def redis_url(self) -> str:
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        return (
+            f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        )
+
 
 settings = Settings()
