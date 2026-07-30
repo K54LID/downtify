@@ -3,7 +3,6 @@ from typing import List
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -14,15 +13,11 @@ class Settings(BaseSettings):
     SUBSCRIPTION_STARS: int = 100
     SUBSCRIPTION_DAYS: int = 30
 
-    # Daily free usage for non-subscribers
     DAILY_FREE_USES: int = 3
 
-    # Referral system: days of Premium granted to BOTH referrer and the
-    # referred user once the referred user is verified (e.g. on first download).
     REFERRAL_REWARD_DAYS: int = 3
-    REFERRAL_BONUS_DAYS: int = 1  # extra days for the new (referred) user
+    REFERRAL_BONUS_DAYS: int = 1
 
-    # Daily spin wheel
     SPIN_COOLDOWN_HOURS: int = 24
 
     POSTGRES_USER: str = "Downtify"
@@ -46,6 +41,8 @@ class Settings(BaseSettings):
     WEBAPP_PORT: int = 8080
     WEBHOOK_SECRET: str = ""
 
+    TELEGRAM_API_ROOT: str = ""
+
     @field_validator("ADMIN_IDS", mode="before")
     @classmethod
     def _split_admin_ids(cls, v):
@@ -63,6 +60,5 @@ class Settings(BaseSettings):
     @property
     def redis_url(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-
 
 settings = Settings()

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.telegram import TelegramAPIServer
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 import redis.asyncio as redis
@@ -19,9 +21,17 @@ from app.admin import handlers as h_admin
 
 
 def build_bot() -> Bot:
+    if settings.TELEGRAM_API_ROOT:
+        session = AiohttpSession(
+            api=TelegramAPIServer.from_base(settings.TELEGRAM_API_ROOT, is_local=True)
+        )
+    else:
+        session = None
+
     return Bot(
         token=settings.BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        session=session,
     )
 
 
@@ -29,7 +39,6 @@ def build_dispatcher() -> Dispatcher:
     storage = RedisStorage(redis=redis.from_url(settings.redis_url))
     dp = Dispatcher(storage=storage)
 
-    # Order matters: db -> user -> throttle
     dp.update.outer_middleware(DbSessionMiddleware())
     dp.update.outer_middleware(UserMiddleware())
     dp.update.outer_middleware(ThrottleMiddleware())
@@ -41,6 +50,6 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(h_spin.router)
     dp.include_router(h_leaderboard.router)
     dp.include_router(h_admin.router)
-    dp.include_router(h_menu.router)       # menu button routing (before catch-all)
-    dp.include_router(h_downloads.router)  # catch-all text last
+    dp.include_router(h_menu.router)
+    dp.include_router(h_downloads.router)
     return dp
