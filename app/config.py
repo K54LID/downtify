@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     WEBAPP_HOST: str = "0.0.0.0"
     WEBAPP_PORT: int = 8080
     WEBHOOK_SECRET: str = ""
-
+    DATABASE_URL: str = ""
     TELEGRAM_API_ROOT: str = ""
 
     @property
@@ -57,10 +57,17 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+     if self.DATABASE_URL:
+        return self.DATABASE_URL.replace(
+            "postgres://",
+            "postgresql+asyncpg://",
+            1,
         )
+
+     return (
+        f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+        f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    )
 
     @property
     def redis_url(self) -> str:
