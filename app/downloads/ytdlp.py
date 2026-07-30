@@ -12,6 +12,8 @@ from app.config import settings
 
 Kind = Literal["video", "audio"]
 
+_FORMAT_UNAVAILABLE_MARKER = "requested format is not available"
+
 
 @dataclass
 class DownloadResult:
@@ -57,6 +59,15 @@ def _base_opts(workdir: str) -> dict:
     cookies_path = os.environ.get("YTDLP_COOKIES_FILE", "")
     if cookies_path and os.path.isfile(cookies_path):
         opts["cookiefile"] = cookies_path
+
+    # Optional proxy — set YTDLP_PROXY_URL (e.g. a residential/mobile proxy)
+    # in .env. Instagram/YouTube often block by *datacenter IP reputation*
+    # rather than strictly requiring login, so routing requests through a
+    # residential IP can resolve "empty media response" errors with zero
+    # account risk, as an alternative to cookies.
+    proxy_url = os.environ.get("YTDLP_PROXY_URL", "")
+    if proxy_url:
+        opts["proxy"] = proxy_url
 
     return opts
 
@@ -221,10 +232,15 @@ def _sync_download(url: str, kind: Kind, quality: str | None) -> DownloadResult:
         try:
             info = ydl.extract_info(url, download=True)
             active_ydl = ydl
-        except Exception:
-            # Intelligent fallback: requested format/quality unavailable ->
-            # retry with the most permissive selector.
-            fallback_opts = {**opts, "format": "ba/b" if kind == "audio" else "bv*+ba/b/b"}
+        except Exception as exc:
+            # Retry only when the requested format/quality is unavailable.
+            if _FORMAT_UNAVAILABLE_MARKER not in str(exc).lower():
+                raise
+
+            fallback_opts = {
+                **opts,
+                "format": "ba/b" if kind == "audio" else "bv*+ba/b/b",
+            }
             with YoutubeDL(fallback_opts) as ydl2:
                 info = ydl2.extract_info(url, download=True)
             active_ydl = ydl2
