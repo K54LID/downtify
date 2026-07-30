@@ -38,7 +38,7 @@ ADMIN_COMMANDS = COMMANDS + [
 
 async def on_startup(bot) -> None:
     await bot.set_my_commands(COMMANDS)
-    for admin_id in settings.ADMIN_IDS:
+    for admin_id in settings.admin_ids:
         try:
             await bot.set_my_commands(ADMIN_COMMANDS, scope=BotCommandScopeChat(chat_id=admin_id))
         except Exception:

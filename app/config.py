@@ -47,13 +47,11 @@ class Settings(BaseSettings):
     DATABASE_URL: str = ""
     TELEGRAM_API_ROOT: str = ""
 
-    @property
-    def admin_ids(self) -> list[int]:
-        return [
-            int(x.strip())
-            for x in self.ADMIN_IDS.split(",")
-            if x.strip()
-        ]
+    def is_admin(user_id: int) -> bool:
+     return user_id in [
+        int(x)
+        for x in settings.ADMIN_IDS.split(",")
+    ]
 
     @property
     def database_url(self) -> str:

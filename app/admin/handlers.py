@@ -15,7 +15,7 @@ router = Router(name="admin")
 
 
 def is_admin(user_id: int) -> bool:
-    return user_id in settings.ADMIN_IDS
+    return user_id in settings.admin_ids
 
 
 async def _format_user_line(session: AsyncSession, u) -> str:
