@@ -78,3 +78,10 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+@property
+def admin_ids(self) -> list[int]:
+    return [
+        int(x.strip())
+        for x in self.ADMIN_IDS.split(",")
+        if x.strip()
+    ]
